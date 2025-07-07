@@ -77,3 +77,10 @@ Usage
         C key: Clear the canvas
 
         Close the window to exit
+
+
+### Python 
+
+Will create a requirent.txt but once we do
+
+    pip install -r requiremts.txt
