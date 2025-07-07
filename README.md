@@ -83,4 +83,4 @@ Usage
 
 Will create a requirent.txt but once we do
 
-    pip install -r requiremts.txt
+    pip install -r requirments.txt
