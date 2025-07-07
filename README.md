@@ -13,11 +13,15 @@ To run the cpp file do
 
     g++ -std=c++17 digit_drawer.cpp -o digit_drawer `sdl2-config --cflags --libs`
 
-This command is for linux and mack idk about windows
+This command is for linux and mac 
 
 then run...
 
     ./digit_drawer
+
+and windows
+    `./digit_drawer.exe`
+
 ### Linux (Debian/Ubuntu)
 
 
