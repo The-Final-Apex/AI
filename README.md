@@ -24,7 +24,7 @@ then run...
     sudo apt-get install g++ libsdl2-dev cmake
 
 ### Linux (ArchLinux)
-sudo pacman -S g++ libsd2-dev cmake
+    sudo pacman -S g++ libsdl2-dev cmake
 
 
 ### macOS (using Homebrew)
