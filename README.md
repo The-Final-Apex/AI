@@ -85,6 +85,6 @@ Usage
 
 ### Python 
 
-Will create a requirent.txt but once we do
+Will create a requirments.txt but once we do
 
-    pip install -r requirments.txt
+    pip install -r requirements.txt
