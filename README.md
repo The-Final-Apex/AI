@@ -1,90 +1,103 @@
-# AI
-A attempt to make a AI in 48 hours zero to hero
+1. Install Required Dependencies
+On Ubuntu/Debian:
 
-## Prerequisites
+    sudo apt update
+    sudo apt install python3 python3-pip python3-venv libsdl2-dev g++
 
-- C++17 compatible compiler (g++ or clang++)
-- SDL2 library
-- CMake (optional, but recommended)
+On macOS (using Homebrew):
 
+    brew install python sdl2
 
+On Windows (using Chocolatey):
 
-To run the cpp file do
+    choco install python sdl2
 
-    g++ -std=c++17 digit_drawer.cpp -o digit_drawer `sdl2-config --cflags --libs`
-
-This command is for linux and mac 
-
-then run...
-
-    ./digit_drawer
-
-and windows
-    `./digit_drawer.exe`
-
-### Linux (Debian/Ubuntu)
+2. Train the Model (Python)
 
 
-    sudo apt-get install g++ libsdl2-dev cmake
+# Create and activate virtual environment
+   
+    python3 -m venv mnist-env
+    source mnist-env/bin/activate  # Linux/Mac
+    
+# mnist-env\Scripts\activate  # Windows
 
-### Linux (ArchLinux)
-    sudo pacman -S g++ libsdl2-dev cmake
+# Install Python requirements
+   
+   pip install tensorflow numpy
 
+# Download training script
+    
+    wget https://gist.githubusercontent.com/yourusername/yourgistid/raw/train_mnist.py -O train_mnist.py
 
-### macOS (using Homebrew)
+# Train the model (takes 2-5 minutes)
+    
+    python train_mnist.py
 
-    brew install gcc sdl2 cmake
+3. Compile the C++ Application
 
-### Windows (MSYS2)
+# Download the C++ code
 
-    pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-cmake
+    wget https://gist.githubusercontent.com/yourusername/yourgistid/raw/digit_recognizer.cpp -O digit_recognizer.cpp
 
-## Building the Project
-# Basic Build
+# Compile with SDL2
 
+    g++ -std=c++17 digit_recognizer.cpp -o digit_recognizer `sdl2-config --cflags --libs`
+    
+# Windows alternative (if using MinGW):
 
-    g++ -std=c++17 digit_drawer.cpp -o digit_drawer `sdl2-config --cflags --libs`
+    g++ -std=c++17 digit_recognizer.cpp -o digit_recognizer -Iinclude -Llib -lSDL2main -lSDL2
 
-## Using CMake (Recommended)
+4. Run the Application
 
-# Create a build directory:
+# Make sure mnist_weights.bin exists in the same directory
+    
+    ./digit_recognizer
 
+5. Application Controls
 
-    mkdir build && cd build
+    Draw: Left-click and drag
 
-Run CMake and build:
+    Predict: Release mouse button
 
+    Clear: Press C key
 
-    cmake ..
-    make
+    Quit: Close window or Ctrl+C in terminal
 
-### Running the Application
+Troubleshooting Commands
 
-    ./digit_drawer
-
-Usage
-
-    Drawing:
-
-        Left-click and drag to draw digits
-
-        The canvas is 280x280 pixels but downsamples to 28x28 for the neural network
-
-    Recognition:
-
-        The network predicts the digit in real-time
-
-        Predictions are shown in the console output
-
-    Controls:
-
-        C key: Clear the canvas
-
-        Close the window to exit
+If you get SDL errors:
 
 
-### Python 
+# Verify SDL installation
+    
+    sdl2-config --version
 
-Will create a requirments.txt but once we do
+# Check linked libraries
+    
+    ldd ./digit_recognizer  # Linux
+    otool -L ./digit_recognizer  # Mac
 
-    pip install -r requirements.txt
+If weights fail to load:
+
+# Check weight file integrity
+    ls -lh mnist_weights.bin  # Should be ~300KB
+    hexdump -n 32 mnist_weights.bin  # Should show binary data
+
+Full Command Cheat Sheet
+
+    Step	Command
+    
+    Install deps	sudo apt install python3 python3-pip python3-venv libsdl2-dev g++
+    
+    Setup Python	python3 -m venv mnist-env && source mnist-env/bin/activate
+    
+    Install TF	pip install tensorflow numpy
+    
+    Train model	python train_mnist.py
+    
+    Get C++ code	wget [URL] -O digit_recognizer.cpp
+    
+    Compile	g++ -std=c++17 digit_recognizer.cpp -o digit_recognizer sdl2-config --cflags --libs``
+    
+    Run	./digit_recognizer
