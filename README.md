@@ -92,7 +92,7 @@ Full Command Cheat Sheet
     
     Setup Python	python3 -m venv mnist-env && source mnist-env/bin/activate
     
-    Install TF	pip install tensorflow numpy
+    Install The needed libs	pip install torch torchvision numpy
     
     Train model	python train_mnist.py
     
