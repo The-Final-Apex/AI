@@ -97,7 +97,4 @@ Full Command Cheat Sheet
     Train model	python train_mnist.py
     
     Get C++ code	wget [URL] -O digit_recognizer.cpp
-    
-    Compile	g++ -std=c++17 digit_recognizer.cpp -o digit_recognizer sdl2-config --cflags --libs``
-    
-    Run	./digit_recognizer
+
