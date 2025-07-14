@@ -1,12 +1,8 @@
-# I removed tensorflow coz intalling it is pure pain.
-# Im using torch now
-# pip install torch torchvision numpy matplotlib --user
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
-import numpy as np
 
 # Define model
 class Net(nn.Module):
