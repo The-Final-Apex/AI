@@ -98,3 +98,5 @@ Full Command Cheat Sheet
     
     Get C++ code	wget [URL] -O digit_recognizer.cpp
 
+Make sure to get mnist_train.csv from kaggle
+
