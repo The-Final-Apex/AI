@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from scipy.ndimage import zoom
 
+#The basis
 # Neural Network Class
 class NeuralNetwork:
     def __init__(self, input_size, hidden_size, output_size):
