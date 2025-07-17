@@ -5,7 +5,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from scipy.ndimage import zoom
 
-#The basis
 # Neural Network Class
 class NeuralNetwork:
     def __init__(self, input_size, hidden_size, output_size):
@@ -38,6 +37,7 @@ class NeuralNetwork:
         db2 = (1 / m) * np.sum(dz2, axis=1, keepdims=True)
         
         dz1 = np.dot(self.weights_hidden_output.T, dz2) * self.relu_derivative(self.z1)
+        dzzb = np.dot(dz1, X.T)
         dw1 = (1 / m) * np.dot(dz1, X.T)
         db1 = (1 / m) * np.sum(dz1, axis=1, keepdims=True)
         
