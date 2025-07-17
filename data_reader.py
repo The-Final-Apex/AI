@@ -1,6 +1,6 @@
 import pandas as pd
 
-DATA = "mnist_train.csv"
+DATA = ""
 DATA = pd.read_csv(DATA).to_numpy()
 
 def extract_data(data, num_samples=1000):
