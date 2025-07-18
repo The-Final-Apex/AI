@@ -126,4 +126,6 @@ if __name__ == "__main__":
     user_digit = draw_digit()
     user_digit = user_digit.reshape(784, 1)  # Reshape to match input size
     prediction = predict(nn, user_digit)
+
+    #Final print prediction
     print(f"The model predicts: {prediction}")
