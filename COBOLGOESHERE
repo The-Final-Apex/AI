@@ -1,0 +1,345 @@
+1
+
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. DIGIT-RECOGNIZER.
+       AUTHOR. AI-ASSISTANT.
+       DATE-WRITTEN. 2024.
+       
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT DIGIT-FILE ASSIGN TO "DIGITDATA.DAT"
+           ORGANIZATION IS LINE SEQUENTIAL.
+           SELECT RESULT-FILE ASSIGN TO "RESULTS.DAT"
+           ORGANIZATION IS LINE SEQUENTIAL.
+       
+       DATA DIVISION.
+       FILE SECTION.
+       FD DIGIT-FILE.
+       01 DIGIT-RECORD.
+          05 DIGIT-DATA PIC X(785).  *> MNIST-like 28x28 pixels
+          05 DIGIT-LABEL PIC 9.
+       
+       FD RESULT-FILE.
+       01 RESULT-RECORD.
+          05 PREDICTED-DIGIT PIC 9.
+          05 CONFIDENCE PIC 9.99.
+          05 ACTUAL-DIGIT PIC 9.
+       
+       WORKING-STORAGE SECTION.
+       01 WS-INDICATORS.
+          05 WS-EOF PIC X VALUE 'N'.
+          05 WS-PYTHON-RC PIC 99.
+       
+       01 WS-DATA-ARRAY.
+          05 WS-PIXEL-VALUES OCCURS 785 TIMES
+             INDEXED BY PIX-IDX.
+             10 WS-PIXEL PIC S9(4).
+       
+       01 WS-COMMAND-LINE PIC X(1000).
+       
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           PERFORM INITIALIZE-PROGRAM
+           PERFORM PROCESS-DIGITS UNTIL WS-EOF = 'Y'
+           PERFORM TERMINATE-PROGRAM
+           STOP RUN.
+       
+       INITIALIZE-PROGRAM.
+           OPEN INPUT DIGIT-FILE
+           OPEN OUTPUT RESULT-FILE
+           MOVE 'N' TO WS-EOF.
+       
+       PROCESS-DIGITS.
+           READ DIGIT-FILE
+               AT END MOVE 'Y' TO WS-EOF
+               NOT AT END PERFORM PROCESS-ONE-DIGIT
+           END-READ.
+       
+       PROCESS-ONE-DIGIT.
+           *> Convert character data to numeric array
+           PERFORM CONVERT-TO-ARRAY
+           
+           *> Call Python ML model
+           PERFORM CALL-PYTHON-MODEL
+           
+           *> Write results
+           PERFORM WRITE-RESULT.
+       
+       CONVERT-TO-ARRAY.
+           MOVE 1 TO PIX-IDX
+           PERFORM UNTIL PIX-IDX > 785
+              MOVE DIGIT-DATA(PIX-IDX:1) 
+                TO WS-PIXEL(PIX-IDX)
+              SET PIX-IDX UP BY 1
+           END-PERFORM.
+       
+       CALL-PYTHON-MODEL.
+           *> Prepare data for Python
+           STRING 
+               "python digit_recognizer.py "
+               "INPUT_DATA_HERE"  *> Would be actual pixel data
+               DELIMITED BY SIZE INTO WS-COMMAND-LINE
+           END-STRING
+           
+           CALL "SYSTEM" USING WS-COMMAND-LINE
+             RETURNING WS-PYTHON-RC.
+       
+       WRITE-RESULT.
+           *> This would read Python output and write results
+           MOVE DIGIT-LABEL TO ACTUAL-DIGIT
+           *> For demo, using placeholder values
+           MOVE 5 TO PREDICTED-DIGIT
+           MOVE 0.95 TO CONFIDENCE
+           WRITE RESULT-RECORD.
+       
+       TERMINATE-PROGRAM.
+           CLOSE DIGIT-FILE, RESULT-FILE.
+
+
+
+
+
+2
+
+# digit_recognizer.py
+import numpy as np
+import pickle
+import sys
+import json
+
+class DigitRecognizer:
+    def __init__(self, model_path='digit_model.pkl'):
+        """Load pre-trained model"""
+        try:
+            with open(model_path, 'rb') as f:
+                self.model = pickle.load(f)
+        except FileNotFoundError:
+            print("Model not found. Please train the model first.")
+            self.model = None
+    
+    def preprocess_data(self, raw_data):
+        """Preprocess data from COBOL format"""
+        # Convert COBOL data to numpy array
+        # Assuming raw_data is comma-separated pixel values
+        pixels = list(map(int, raw_data.split(',')))
+        array = np.array(pixels).reshape(1, -1)
+        
+        # Normalize pixel values
+        array = array.astype('float32') / 255.0
+        return array
+    
+    def predict(self, data):
+        """Predict digit from input data"""
+        if self.model is None:
+            return {"error": "Model not loaded"}
+        
+        processed_data = self.preprocess_data(data)
+        prediction = self.model.predict(processed_data)
+        probability = np.max(self.model.predict_proba(processed_data))
+        
+        return {
+            "predicted_digit": int(prediction[0]),
+            "confidence": float(probability),
+            "status": "success"
+        }
+
+def train_model():
+    """Train a simple digit recognition model (run once)"""
+    from sklearn.datasets import load_digits
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import accuracy_score
+    
+    # Load digit dataset
+    digits = load_digits()
+    X, y = digits.data, digits.target
+    
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    
+    # Train model
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+    
+    # Evaluate
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Model accuracy: {accuracy:.4f}")
+    
+    # Save model
+    with open('digit_model.pkl', 'wb') as f:
+        pickle.dump(model, f)
+    
+    print("Model trained and saved successfully!")
+    return model
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "train":
+        train_model()
+    else:
+        # For prediction mode
+        recognizer = DigitRecognizer()
+        
+        # Get data from command line or stdin
+        if len(sys.argv) > 1:
+            input_data = sys.argv[1]
+        else:
+            input_data = sys.stdin.read().strip()
+        
+        result = recognizer.predict(input_data)
+        print(json.dumps(result))
+
+
+
+
+
+
+
+
+3
+
+
+
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. DATA-CONVERTER.
+       AUTHOR. AI-ASSISTANT.
+       
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT IMAGE-FILE ASSIGN TO "IMAGES.DAT"
+           ORGANIZATION IS LINE SEQUENTIAL.
+           SELECT COBOL-FILE ASSIGN TO "COBOLDATA.DAT"
+           ORGANIZATION IS LINE SEQUENTIAL.
+       
+       DATA DIVISION.
+       FILE SECTION.
+       FD IMAGE-FILE.
+       01 IMAGE-RECORD.
+          05 IMG-LABEL PIC 9.
+          05 IMG-DATA PIC X(784).
+       
+       FD COBOL-FILE.
+       01 COBOL-RECORD.
+          05 CB-LABEL PIC 9.
+          05 CB-DATA PIC X(785).
+       
+       WORKING-STORAGE SECTION.
+       01 WS-EOF PIC X VALUE 'N'.
+       01 WS-COUNTER PIC 9(5) VALUE ZERO.
+       
+       PROCEDURE DIVISION.
+       MAIN.
+           OPEN INPUT IMAGE-FILE
+           OPEN OUTPUT COBOL-FILE
+           
+           PERFORM UNTIL WS-EOF = 'Y'
+               READ IMAGE-FILE
+                   AT END MOVE 'Y' TO WS-EOF
+                   NOT AT END PERFORM CONVERT-RECORD
+               END-READ
+           END-PERFORM
+           
+           DISPLAY "Converted " WS-COUNTER " records"
+           CLOSE IMAGE-FILE COBOL-FILE
+           STOP RUN.
+       
+       CONVERT-RECORD.
+           MOVE IMG-LABEL TO CB-LABEL
+           MOVE IMG-DATA TO CB-DATA
+           WRITE COBOL-RECORD
+           ADD 1 TO WS-COUNTER.
+
+
+
+
+
+4
+
+
+
+
+#!/bin/bash
+# run_digit_recognition.sh
+
+# Step 1: Convert data to COBOL format
+echo "Converting data format..."
+cobc -x DATA-CONVERTER.cbl
+./DATA-CONVERTER
+
+# Step 2: Train Python model (if needed)
+echo "Training ML model..."
+python digit_recognizer.py train
+
+# Step 3: Run COBOL digit recognition
+echo "Running digit recognition..."
+cobc -x DIGIT-RECOGNIZER.cbl
+./DIGIT-RECOGNIZER
+
+# Step 4: Display results
+echo "Recognition complete. Results in RESULTS.DAT"
+
+
+
+5sample
+
+
+
+# generate_sample_data.py
+import numpy as np
+
+def generate_sample_data(filename="images.dat", num_samples=100):
+    """Generate sample digit data for testing"""
+    with open(filename, 'w') as f:
+        for i in range(num_samples):
+            # Random label (0-9)
+            label = np.random.randint(0, 10)
+            
+            # Random pixel data (simplified)
+            pixels = np.random.randint(0, 256, 784)
+            pixel_str = ''.join([str(p) + ',' for p in pixels])[:-1]
+            
+            f.write(f"{label},{pixel_str}\n")
+    
+    print(f"Generated {num_samples} sample records in {filename}")
+
+if __name__ == "__main__":
+    generate_sample_data()
+
+
+
+
+
+
+
+
+
+
+Compile COBOL programs:
+bash
+
+cobc -x DIGIT-RECOGNIZER.cbl
+cobc -x DATA-CONVERTER.cbl
+
+Train the Python model:
+bash
+
+python digit_recognizer.py train
+
+Generate sample data:
+bash
+
+python generate_sample_data.py
+
+Run the system:
+bash
+
+./run_digit_recognition.sh
+
+
+
+
+
